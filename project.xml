@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<meta title="Animo" package="org.mssite.animo" version="0.1.0" build-number="1" company="RblSb" />
+	<app main="Main" preloader="Main" path="bin" file="animo" />
+	
+	<window background="#F0F0F0" fps="60" antialiasing="1" vsync="true" />
+	<window width="800" height="600" if="desktop" />
+	<window width="600" height="480" if="flash" />
+	<window width="0" height="0" if="html5" />
+	<window orientation="landscape" if="cpp" />
+	
+	<source path="src" />
+	<haxelib name="openfl" />
+	
+	<assets path="res" include="*" exclude="icon.svg" type="template" />
+	<assets path="res/examples" include="*.json" type="binary" />
+	<icon path="res/icon.svg" />
+
+	<!-- <haxedef name="simulate-preloader" value="3000" /> -->
+	<!-- <haxedef name="source-map-content" if="html5" /> -->
+	<!-- <haxeflag name="-dce full" /> -->
+</project>
