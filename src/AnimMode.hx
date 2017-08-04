@@ -18,9 +18,15 @@ class AnimMode implements Mode {
 	var angleDiff = 0;
 	var CLOSE_MAX = 7.0;
 	var ctx:Editor;
+	var sbasis(get, never):Sprite;
+	var basis(get, never):Basis;
+	var theme(get, never):Theme;
+	var scale(get, never):Float;
+	var isGrid(get, never):Bool;
 	
 	public function new(ctx:Editor) {
 		this.ctx = ctx;
+		
 		if (ctx.isTouch) CLOSE_MAX *= 2;
 	}
 	
@@ -31,7 +37,6 @@ class AnimMode implements Mode {
 	}
 	
 	public function reload(frameId:Int):Void {
-		var basis = ctx.basis;
 		var frame = basis.frames[frameId];
 		var parents:Array<Int> = [];
 		points = [];
@@ -89,7 +94,6 @@ class AnimMode implements Mode {
 	public function undo():Void {
 		var hid = undo_h.length - 1;
 		if (hid == -1) return;
-		var basis = ctx.basis;
 		var points = basis.points;
 		var edges = basis.edges;
 		var h = undo_h[hid];
@@ -116,7 +120,6 @@ class AnimMode implements Mode {
 	public function redo():Void {
 		var hid = redo_h.length - 1;
 		if (hid == -1) return;
-		var basis = ctx.basis;
 		var points = basis.points;
 		var h = redo_h[hid];
 		var h2 = undo_h;
@@ -144,8 +147,6 @@ class AnimMode implements Mode {
 	}
 	
 	function closestPoint(x:Float, y:Float):Int {
-		var sbasis = ctx.sbasis;
-		var scale = ctx.scale;
 		var min = CLOSE_MAX;
 		var id = -1;
 		
@@ -173,11 +174,6 @@ class AnimMode implements Mode {
 	
 	public function onMouseMove(id:Int):Void {
 		var pointer = ctx.pointers[id];
-		var isGrid = ctx.isGrid;
-		var sbasis = ctx.sbasis;
-		var basis = ctx.basis;
-		var scale = ctx.scale;
-		var theme = ctx.theme;
 		
 		var cp = closestPoint(pointer.x, pointer.y);
 		var g = ctx.visual.graphics;
@@ -268,7 +264,6 @@ class AnimMode implements Mode {
 		var pp = parents[0]; //parent id
 		var p2 = points[pp]; //parent point
 		
-		var basis = ctx.basis;
 		var frame = basis.frames[frameId];
 		
 		var p_edges = getEdges(p1, -1); //parent-child edge
@@ -303,7 +298,7 @@ class AnimMode implements Mode {
 	function getEdges(p:Point, depth:Int):Array<Int> {
 		var edges:Array<Int> = [];
 		for (eid in p.edges) {
-			var e = ctx.basis.edges[eid];
+			var e = basis.edges[eid];
 			if (points[e.p1].d == p.d + depth ||
 				points[e.p2].d == p.d + depth) edges.push(eid);
 		}
@@ -313,7 +308,7 @@ class AnimMode implements Mode {
 	function getParents(p:Point):Array<Int> {
 		var parents:Array<Int> = [];
 		for (eid in p.edges) {
-			var e = ctx.basis.edges[eid];
+			var e = basis.edges[eid];
 			if (points[e.p1].d == p.d-1) parents.push(e.p1);
 			if (points[e.p2].d == p.d-1) parents.push(e.p2);
 		}
@@ -323,7 +318,7 @@ class AnimMode implements Mode {
 	function getChilds(p:Point):Array<Int> {
 		var childs:Array<Int> = [];
 		for (eid in p.edges) {
-			var e = ctx.basis.edges[eid];
+			var e = basis.edges[eid];
 			if (points[e.p1].d == p.d+1) childs.push(e.p1);
 			if (points[e.p2].d == p.d+1) childs.push(e.p2);
 		}
@@ -340,7 +335,6 @@ class AnimMode implements Mode {
 		var pp = parents[0]; //parent id
 		var p2 = points[pp]; //parent point
 		
-		var basis = ctx.basis;
 		var frame = basis.frames[ctx.frameId];
 		
 		var p_edges = getEdges(p1, -1); //parent-child edge
@@ -364,13 +358,8 @@ class AnimMode implements Mode {
 	public function update():Void {
 		drawPrevFrame();
 		var stage = Lib.current.stage;
-		var theme = ctx.theme;
-		var isGrid = ctx.isGrid;
 		var grid = ctx.grid;
-		var basis = ctx.basis;
-		var sbasis = ctx.sbasis;
 		var g = sbasis.graphics;
-		var scale = ctx.scale;
 		g.clear();
 		
 		var cslen = theme.lines.length;
@@ -414,17 +403,14 @@ class AnimMode implements Mode {
 	}
 	
 	function drawPrevFrame():Void { //fix
-		var flen = ctx.basis.frames.length;
+		var flen = basis.frames.length;
 		var frameId = ctx.frameId;
 		if (ctx.playState != 0 || flen < 2 || frameId < 0) return;
 		if (frameId == 0) frameId = flen;
 		reload(frameId - 1);
 		var stage = Lib.current.stage;
-		var theme = ctx.theme;
-		var basis = ctx.basis;
 		var sbasis = ctx.prevView;
 		var g = sbasis.graphics;
-		var scale = ctx.scale;
 		g.clear();
 		
 		var cslen = theme.lines.length;
@@ -449,6 +435,22 @@ class AnimMode implements Mode {
 		sbasis.x = stage.stageWidth/2 - r.width/2 - r.x;
 		sbasis.y = stage.stageHeight/2 - r.height/2 - r.y;
 		reload(ctx.frameId);
+	}
+	
+	function get_sbasis() {
+		return ctx.sbasis;
+	}
+	function get_basis() {
+		return ctx.basis;
+	}
+	function get_theme() {
+		return ctx.theme;
+	}
+	function get_scale() {
+		return ctx.scale;
+	}
+	function get_isGrid() {
+		return ctx.isGrid;
 	}
 	
 }

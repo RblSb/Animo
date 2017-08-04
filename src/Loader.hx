@@ -84,26 +84,10 @@ class Loader extends Screen {
 		return basis;
 	}
 	
-	public static function loadExample(id:Int=0):Basis { //fix
+	public static function loadExample(id:Int=0):Basis {
 		var stage = Lib.current.stage;
 		var text = Assets.getText("res/examples/"+id+".json");
 		var basis:Basis = haxe.Json.parse(text);
-		
-		for (i in 0...basis.points.length) { //make point links to edges
-			if (basis.points[i] == null) continue;
-			basis.points[i].edges = [];
-			for (i2 in 0...basis.edges.length) {
-				if (basis.edges[i2] == null) continue;
-				if (basis.edges[i2].p1 == i || basis.edges[i2].p2 == i) basis.points[i].edges.push(i2);
-			}
-		}
-		
-		for (i in 0...basis.edges.length) { //cache angles
-			if (basis.edges[i] == null) continue;
-			var e = basis.edges[i];
-			var p = basis.points;
-			e.ang = Math.atan2(p[e.p2].y - p[e.p1].y, p[e.p2].x - p[e.p1].x);
-		}
 		
 		return basis;
 	}

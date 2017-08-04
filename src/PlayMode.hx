@@ -21,6 +21,11 @@ class PlayMode implements Mode {
 	var oldFrameId = -1;
 	var frameCount = 1;
 	var ctx:Editor;
+	var sbasis(get, never):Sprite;
+	var basis(get, never):Basis;
+	var theme(get, never):Theme;
+	var scale(get, never):Float;
+	var isGrid(get, never):Bool;
 	
 	public function new(ctx:Editor) {
 		this.ctx = ctx;
@@ -34,8 +39,8 @@ class PlayMode implements Mode {
 		var w = Math.abs(minW) + Math.abs(maxW);
 		var h = Math.abs(minH) + Math.abs(maxH);
 		gif = new Gif(
-			Math.ceil(w * ctx.scale + 6),
-			Math.ceil(h * ctx.scale + 6),
+			Math.ceil(w * scale + 6),
+			Math.ceil(h * scale + 6),
 			1/30, -1, 10, 2
 		);
 	}
@@ -46,14 +51,13 @@ class PlayMode implements Mode {
 			minH = 0;
 			maxW = 0;
 			maxH = 0;
-			gif.save(ctx.basis.name+'.gif');
+			gif.save(basis.name+'.gif');
 			gif = null;
 		}
 		ctx.frameId = oldFrameId;
 	}
 	
 	public function reload(frameId:Int):Void {
-		var basis = ctx.basis;
 		var frame = basis.frames[frameId];
 		var parents:Array<Int> = [];
 		points = [];
@@ -118,7 +122,6 @@ class PlayMode implements Mode {
 		var pp = parents[0]; //parent id
 		var p2 = points[pp]; //parent point
 		
-		var basis = ctx.basis;
 		var frame = basis.frames[frameId];
 		
 		var p_edges = getEdges(p1, -1); //parent-child edge
@@ -158,7 +161,7 @@ class PlayMode implements Mode {
 	function getEdges(p:Point, depth:Int):Array<Int> {
 		var edges:Array<Int> = [];
 		for (eid in p.edges) {
-			var e = ctx.basis.edges[eid];
+			var e = basis.edges[eid];
 			if (points[e.p1].d == p.d + depth ||
 				points[e.p2].d == p.d + depth) edges.push(eid);
 		}
@@ -168,7 +171,7 @@ class PlayMode implements Mode {
 	function getParents(p:Point):Array<Int> {
 		var parents:Array<Int> = [];
 		for (eid in p.edges) {
-			var e = ctx.basis.edges[eid];
+			var e = basis.edges[eid];
 			if (points[e.p1].d == p.d-1) parents.push(e.p1);
 			if (points[e.p2].d == p.d-1) parents.push(e.p2);
 		}
@@ -178,7 +181,7 @@ class PlayMode implements Mode {
 	function getChilds(p:Point):Array<Int> {
 		var childs:Array<Int> = [];
 		for (eid in p.edges) {
-			var e = ctx.basis.edges[eid];
+			var e = basis.edges[eid];
 			if (points[e.p1].d == p.d+1) childs.push(e.p1);
 			if (points[e.p2].d == p.d+1) childs.push(e.p2);
 		}
@@ -187,12 +190,11 @@ class PlayMode implements Mode {
 	
 	public function onEnterFrame():Void {
 		if (ctx.playState == 3) {
-			var sbasis = ctx.sbasis;
 			var bmd = new BitmapData(
 				Math.ceil(sbasis.width * 2),
 				Math.ceil(sbasis.height * 2),
 				false,
-				ctx.theme.bg
+				theme.bg
 			);
 			
 			sbasis.x = 0;
@@ -213,7 +215,6 @@ class PlayMode implements Mode {
 			sbasis.y = stage.stageHeight/2 - r.height/2 - r.y;
 		}
 		
-		var basis = ctx.basis;
 		var frame = basis.frames[ctx.frameId];
 		var fnext = ctx.frameId + 1;
 		if (fnext == basis.frames.length) fnext = 0;
@@ -267,7 +268,6 @@ class PlayMode implements Mode {
 		var pp = parents[0]; //parent id
 		var p2 = points[pp]; //parent point
 		
-		var basis = ctx.basis;
 		var frame = basis.frames[ctx.frameId];
 		
 		var p_edges = getEdges(p1, -1); //parent-child edge
@@ -290,13 +290,8 @@ class PlayMode implements Mode {
 	
 	public function update():Void {
 		var stage = Lib.current.stage;
-		var theme = ctx.theme;
-		var isGrid = ctx.isGrid;
 		var grid = ctx.grid;
-		var basis = ctx.basis;
-		var sbasis = ctx.sbasis;
 		var g = sbasis.graphics;
-		var scale = ctx.scale;
 		g.clear();
 		
 		var cslen = theme.lines.length;
@@ -337,6 +332,22 @@ class PlayMode implements Mode {
 		
 		grid.x = sbasis.x;
 		grid.y = sbasis.y;
+	}
+	
+	function get_sbasis() {
+		return ctx.sbasis;
+	}
+	function get_basis() {
+		return ctx.basis;
+	}
+	function get_theme() {
+		return ctx.theme;
+	}
+	function get_scale() {
+		return ctx.scale;
+	}
+	function get_isGrid() {
+		return ctx.isGrid;
 	}
 	
 }

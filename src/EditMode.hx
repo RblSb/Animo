@@ -15,9 +15,15 @@ class EditMode implements Mode {
 	var closest:Array<Int> = [-1, -1];
 	var CLOSE_MAX = 7.0;
 	var ctx:Editor;
+	var sbasis(get, never):Sprite;
+	var basis(get, never):Basis;
+	var theme(get, never):Theme;
+	var scale(get, never):Float;
+	var isGrid(get, never):Bool;
 	
 	public function new(ctx:Editor) {
 		this.ctx = ctx;
+		
 		if (ctx.isTouch) CLOSE_MAX *= 2;
 	}
 	
@@ -41,7 +47,6 @@ class EditMode implements Mode {
 	public function undo():Void {
 		var hid = undo_h.length - 1;
 		if (hid == -1) return;
-		var basis = ctx.basis;
 		var points = basis.points;
 		var edges = basis.edges;
 		var h = undo_h[hid];
@@ -92,7 +97,6 @@ class EditMode implements Mode {
 	public function redo():Void {
 		var hid = redo_h.length - 1;
 		if (hid == -1) return;
-		var basis = ctx.basis;
 		var points = basis.points;
 		var h = redo_h[hid];
 		var h2 = undo_h;
@@ -142,7 +146,7 @@ class EditMode implements Mode {
 	}
 	
 	function addPoint(p:Point):Int {
-		var points = ctx.basis.points;
+		var points = basis.points;
 		var id = 0;
 		while(points[id] != null) id++;
 		if (p.edges == null) p.edges = [];
@@ -152,14 +156,14 @@ class EditMode implements Mode {
 	}
 	
 	function setPoint(id:Int, p:Point):Void {
-		var points = ctx.basis.points;
+		var points = basis.points;
 		if (p.edges == null) p.edges = points[id].edges;
 		if (p.d == null) p.d = points[id].d;
 		points[id] = p;
 	}
 	
 	function delPoint(id:Int):Void {
-		var points = ctx.basis.points;
+		var points = basis.points;
 		for (i in 0...points[id].edges.length) {
 			delEdge(points[id].edges[0]);
 		}
@@ -167,8 +171,8 @@ class EditMode implements Mode {
 	}
 
 	function addEdge(e:Edge):Int {
-		var points = ctx.basis.points;
-		var edges = ctx.basis.edges;
+		var points = basis.points;
+		var edges = basis.edges;
 		var id = 0;
 		while(edges[id] != null) id++;
 		if (e.ang == null) e.ang = Math.atan2(
@@ -183,8 +187,8 @@ class EditMode implements Mode {
 	}
 	
 	function setEdge(id:Int, e:Edge):Void {
-		var points = ctx.basis.points;
-		var edge = ctx.basis.edges[id];
+		var points = basis.points;
+		var edge = basis.edges[id];
 		if (edge == null) edge = {};
 		if (e.p1 != null) edge.p1 = e.p1;
 		if (e.p2 != null) edge.p2 = e.p2;
@@ -193,23 +197,23 @@ class EditMode implements Mode {
 			points[edge.p2].y - points[edge.p1].y,
 			points[edge.p2].x - points[edge.p1].x
 		);
-		ctx.basis.edges[id] = edge;
+		basis.edges[id] = edge;
 		
 		if (points[e.p1].edges.indexOf(id) == -1) points[e.p1].edges.push(id);
 		if (points[e.p2].edges.indexOf(id) == -1) points[e.p2].edges.push(id);
 	}
 	
 	function delEdge(id:Int):Void {
-		var e = ctx.basis.edges[id];
+		var e = basis.edges[id];
 		if (e == null) return;
-		var points = ctx.basis.points;
+		var points = basis.points;
 		points[e.p1].edges.remove(id);
 		points[e.p2].edges.remove(id);
-		ctx.basis.edges[id] = null;
+		basis.edges[id] = null;
 	}
 	
 	function mergePoints(id:Int, id2:Int):Void {
-		var basis = ctx.basis;
+		var basis = basis;
 		var p = basis.points[id];
 		var p2 = basis.points[id2];
 		var old_edges = p2.edges.copy();
@@ -246,11 +250,9 @@ class EditMode implements Mode {
 	}
 	
 	function closestPoint(x:Float, y:Float):Int {
-		var points = ctx.basis.points;
-		var sbasis = ctx.sbasis;
-		var scale = ctx.scale;
+		var points = basis.points;
 		var min = CLOSE_MAX;
-		if (ctx.isGrid) min *= scale / ctx.DEF_SCALE;
+		if (isGrid) min *= scale / ctx.DEF_SCALE;
 		var id = -1;
 		
 		for (i in 0...points.length) {
@@ -268,9 +270,6 @@ class EditMode implements Mode {
 	
 	public function onMouseDown(id:Int):Void {
 		var pointer = ctx.pointers[id];
-		var sbasis = ctx.sbasis;
-		var basis = ctx.basis;
-		var scale = ctx.scale;
 		
 		if (ctx.isTouch) {
 			ctx.pointers[id].isDown = false;
@@ -285,11 +284,6 @@ class EditMode implements Mode {
 	
 	public function onMouseMove(id:Int):Void {
 		var pointer = ctx.pointers[id];
-		var isGrid = ctx.isGrid;
-		var sbasis = ctx.sbasis;
-		var basis = ctx.basis;
-		var scale = ctx.scale;
-		var theme = ctx.theme;
 		var cp = closestPoint(pointer.x, pointer.y);
 		var g = ctx.visual.graphics;
 		
@@ -351,11 +345,7 @@ class EditMode implements Mode {
 		ctx.visual.graphics.clear();
 		
 		var pointer = ctx.pointers[id];
-		var isGrid = ctx.isGrid;
-		var sbasis = ctx.sbasis;
-		var basis = ctx.basis;
 		var points = basis.points;
-		var scale = ctx.scale;
 		var pid = -1, pid2 = -1, eid = -1; //for history
 		
 		if (closest[0] == -1) { //new start point
@@ -386,7 +376,7 @@ class EditMode implements Mode {
 			//new line
 			eid = addEdge({p1: closest[0], p2: closest[1]});
 			//clear this line old frame data
-			for (frame in ctx.basis.frames) {
+			for (frame in basis.frames) {
 				frame.edges[eid] = null;
 			}
 		}
@@ -405,9 +395,6 @@ class EditMode implements Mode {
 	
 	public function onRightDown(id:Int):Void {
 		var pointer = ctx.pointers[id];
-		var sbasis = ctx.sbasis;
-		var basis = ctx.basis;
-		var scale = ctx.scale;
 		
 		if (closest[0] != -1) { //if start point exist
 			pointer.isDown = true;
@@ -421,9 +408,6 @@ class EditMode implements Mode {
 		if (closest[0] == -1) return;
 		
 		var pointer = ctx.pointers[id];
-		var sbasis = ctx.sbasis;
-		var basis = ctx.basis;
-		var scale = ctx.scale;
 		pointer.isDown = false;
 		
 		if (dist(pointer.x, pointer.y, pointer.startX, pointer.startY) > CLOSE_MAX) {
@@ -432,7 +416,7 @@ class EditMode implements Mode {
 				
 				var x = (pointer.x - sbasis.x) / scale;
 				var y = (pointer.y - sbasis.y) / scale;
-				if (ctx.isGrid) {
+				if (isGrid) {
 					x = Math.round(x);
 					y = Math.round(y);
 				}
@@ -481,15 +465,11 @@ class EditMode implements Mode {
 	
 	public function update():Void {
 		var stage = Lib.current.stage;
-		var theme = ctx.theme;
-		var isGrid = ctx.isGrid;
 		var grid = ctx.grid;
 		
-		var sbasis = ctx.sbasis;
 		var g = sbasis.graphics;
-		var points = ctx.basis.points;
-		var edges = ctx.basis.edges;
-		var scale = ctx.scale;
+		var points = basis.points;
+		var edges = basis.edges;
 		g.clear();
 		
 		var plen = 0, elen = 0; //counters
@@ -536,6 +516,22 @@ class EditMode implements Mode {
 		grid.y = sbasis.y;
 		
 		ctx.setInfo(plen, elen);
+	}
+	
+	function get_sbasis() {
+		return ctx.sbasis;
+	}
+	function get_basis() {
+		return ctx.basis;
+	}
+	function get_theme() {
+		return ctx.theme;
+	}
+	function get_scale() {
+		return ctx.scale;
+	}
+	function get_isGrid() {
+		return ctx.isGrid;
 	}
 	
 }

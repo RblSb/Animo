@@ -49,8 +49,8 @@ class Editor extends Screen {
 	public var playState = 0;
 	public var isTouch = false;
 	public var isGrid = true;
-	public var DEF_SCALE = 10;
-	public var scale = 10;
+	public var DEF_SCALE = 10.0;
+	public var scale = 10.0;
 	public var basis:Basis;
 	public var frameId = -1;
 	public var grid = new Sprite();
@@ -93,8 +93,9 @@ class Editor extends Screen {
 		framePanel.init();
 		menuPanel = new MenuPanel(this);
 		menuPanel.init();
-		resetBasis();
-		basis = Loader.loadExample();
+		
+		var basis = Loader.loadExample();
+		loadBasis(basis);
 		resetBoard();
 		
 		addChild(grid);
@@ -457,7 +458,10 @@ class Editor extends Screen {
 		no.y = stage.stageHeight/2;
 		
 		function onClick(e:MouseEvent):Void {
-			if (e.target == yes) resetBasis();
+			if (e.target == yes) {
+				resetBasis();
+				resetBoard();
+			}
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, _onKeyDown);
 			yes.removeEventListener(MouseEvent.CLICK, onClick);
@@ -487,7 +491,26 @@ class Editor extends Screen {
 		}
 		
 		clearHistory();
-		resetBoard();
+	}
+	
+	function loadBasis(b:Basis):Void {
+		for (i in 0...b.points.length) { //make point links to edges
+			if (b.points[i] == null) continue;
+			b.points[i].edges = [];
+			for (i2 in 0...b.edges.length) {
+				if (b.edges[i2] == null) continue;
+				if (b.edges[i2].p1 == i || b.edges[i2].p2 == i) b.points[i].edges.push(i2);
+			}
+		}
+		
+		for (i in 0...b.edges.length) { //cache angles
+			if (b.edges[i] == null) continue;
+			var e = b.edges[i];
+			var p = b.points;
+			e.ang = Math.atan2(p[e.p2].y - p[e.p1].y, p[e.p2].x - p[e.p1].x);
+		}
+		
+		basis = b;
 	}
 	
 	function clearHistory():Void {
