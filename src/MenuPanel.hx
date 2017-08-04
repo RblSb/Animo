@@ -9,12 +9,12 @@ import openfl.Lib;
 
 class MenuPanel extends Sprite {
 	
-	var titles = ["Animo", "File", "Edit", "View"];
+	var titles = ["Animo", "file", "edit", "view"];
 	var menus:Array<Array<String>> = [
-		["Settings","Help","Github","About"],
-		["New","Open","Save","File Sets","Write GIF"],
-		["Undo","Redo","Add Frame","Delete Frame","Next Frame","Prev Frame"],
-		["Play/Pause","Grid","Toggle Theme","Reset Scale"]
+		["settings", "help", "github", "about"],
+		["new", "open", "save", "file_sets", "write_gif"],
+		["undo", "redo", "add_frame", "delete_frame", "next_frame", "prev_frame"],
+		["play_pause", "grid", "toggle_theme", "reset_scale"]
 	];
 	var hotkeys:Array<Array<String>> = [
 		["","","",""],
@@ -68,7 +68,7 @@ class MenuPanel extends Sprite {
 		var offx = offset;
 		
 		for (i in 0...titles.length) {
-			var txt = new Text(titles[i], 0, 0);
+			var txt = new Text(Lang.get(titles[i]), 0, 0);
 			txt.format.color = theme.color;
 			txt.update();
 			var btnW = txt.width;
@@ -143,7 +143,7 @@ class MenuPanel extends Sprite {
 		var maxW = 0.0;
 		
 		for (i in 0...menu.length) {
-			var txt = new Text(menu[i]);
+			var txt = new Text(Lang.get(menu[i]));
 			txt.format.color = theme.color;
 			txt.update();
 			var ht = new Text(hotkeys[i]);
