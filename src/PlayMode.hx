@@ -4,6 +4,7 @@ import openfl.display.BitmapData;
 //import openfl.display.Tilemap;
 //import openfl.display.Tile;
 import openfl.display.Sprite;
+import openfl.geom.Matrix;
 import openfl.Lib;
 import gif.Gif;
 import Interfaces.Mode;
@@ -71,6 +72,7 @@ class PlayMode implements Mode {
 			points[i].edges = basis.points[i].edges; //link
 			points[i].d = basis.points[i].d;
 			if (points[i].d == 0) parents.push(i);
+			checkAABB(points[i]);
 		}
 		
 		for (i in 0...basis.edges.length) {
@@ -110,6 +112,13 @@ class PlayMode implements Mode {
 	public function onRightDown(id:Int):Void {}
 	public function onRightUp(id:Int):Void {}
 	
+	inline function checkAABB(p:Point):Void { //for gif
+		if (p.x < minW) minW = p.x;
+		if (p.y < minH) minH = p.y;
+		if (p.x > maxW) maxW = p.x;
+		if (p.y > maxH) maxH = p.y;
+	}
+	
 	static inline function dist(x:Float, y:Float, x2:Float, y2:Float):Float {
 		return Math.sqrt(Math.pow(x - x2, 2) + Math.pow(y - y2, 2));
 	}
@@ -139,11 +148,8 @@ class PlayMode implements Mode {
 		var rp = rotate(p1, p2, ang);
 		p1.x = rp.x;
 		p1.y = rp.y;
-
-		if (p1.x < minW) minW = p1.x; //for gif
-		if (p1.y < minH) minH = p1.y;
-		if (p1.x > maxW) maxW = p1.x;
-		if (p1.y > maxH) maxH = p1.y;
+		
+		checkAABB(p1);
 		
 		var childs = getChilds(p1);
 		for (id in childs) {
@@ -189,7 +195,7 @@ class PlayMode implements Mode {
 	}
 	
 	public function onEnterFrame():Void {
-		if (ctx.playState == 3) {
+		if (ctx.playState == 3) { //add gif frame
 			var bmd = new BitmapData(
 				Math.ceil(sbasis.width * 2),
 				Math.ceil(sbasis.height * 2),
@@ -200,13 +206,9 @@ class PlayMode implements Mode {
 			sbasis.x = 0;
 			sbasis.y = 0;
 			var r = sbasis.getRect(ctx);
-			var w = Math.abs(r.x) + Math.abs(r.width);
-			var h = Math.abs(r.y) + Math.abs(r.height);
-			
-			var offx = w/2 + gif.width - w + 3;
-			//var offy = h - gif.height;
-			var offy = gif.height/2 + 6;
-			var mat = new openfl.geom.Matrix(1,0,0,1,offx,offy);
+			var offx = gif.width/2 - r.width/2 - r.x;
+			var offy = gif.height/2 - r.height/2 - r.y;
+			var mat = new Matrix(1,0,0,1,offx,offy);
 			bmd.draw(sbasis, mat);
 			gif.addFrame(bmd);
 			

@@ -60,9 +60,11 @@ class Lang {
 		"reset_scale" => "Reset Scale"
 	];
 	static var current:Map<String, String>;
+	public static var iso:String;
 	
 	public static function init() {
-		set(Capabilities.language);
+		iso = Capabilities.language;
+		set(iso);
 	}
 	
 	public static function get(id:String) {

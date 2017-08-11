@@ -147,6 +147,7 @@ class MenuPanel extends Sprite {
 			txt.format.color = theme.color;
 			txt.update();
 			var ht = new Text(hotkeys[i]);
+			//trace(ht.width, ht.height);
 			
 			var btnW = txt.width + offset + ht.width;
 			var btnH = txt.height;
@@ -201,7 +202,12 @@ class MenuPanel extends Sprite {
 			case 0:
 				switch(id) {
 					case 1:
-						Lib.getURL(new URLRequest("https://github.com/RblSb/Animo/blob/master/README.md"));
+						var link = "https://github.com/RblSb/Animo/blob/master/README";
+						if (Lang.iso == "ru") {
+							link += "." + Lang.iso;
+						}
+						link += ".md";
+						Lib.getURL(new URLRequest(link));
 					case 2:
 						Lib.getURL(new URLRequest("https://github.com/RblSb/Animo"));
 				}
