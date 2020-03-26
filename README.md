@@ -2,4 +2,4 @@
 
 Simple skeletal animation editor based on OpenFL.
 
-[Online](http://mssite.org/projects/Animo/)
+[Online](https://rblsb.github.io/Animo/)
